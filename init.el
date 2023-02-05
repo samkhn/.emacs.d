@@ -166,6 +166,11 @@
 (add-to-list 'load-path "~/.emacs.d/pkgs/rust-mode/")
 (autoload 'rust-mode "rust-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+(add-hook 'rust-mode-hook
+	  ;; (lambda () (local-set-key (kbd "C-c m") 'rust-compile))
+	  ;; (lambda () (local-set-key (kbd "C-c c") 'rust-check))
+          (lambda () (setq indent-tabs-mode nil)))
+(setq rust-format-on-save t)
 
 (add-to-list 'load-path "~/.emacs.d/pkgs/cmake-mode/")
 (require 'cmake-mode)
