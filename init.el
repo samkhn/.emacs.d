@@ -161,7 +161,7 @@
 		   (c-set-style "llvm.org"))))))
 
 (require 'llvm-mode)
-(require 'tablgen-mode)
+(require 'tablegen-mode)
 
 (add-to-list 'load-path "~/.emacs.d/pkgs/rust-mode/")
 (autoload 'rust-mode "rust-mode" nil t)
