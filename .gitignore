@@ -1,3 +1,8 @@
-*
-!.gitignore
-!init.el
+auto-save-list
+bookmarks
+eshell
+history
+ido.last
+places
+themes
+url

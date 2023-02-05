@@ -46,8 +46,6 @@
 (setq auto-save-file-name-transforms
       `((".*" "~/.emacs-saves/" t)))
 
-;; TODO: Packages but manually installed.
-
 ;; Fonts and Windowing
 ;; Themes set at the bottom of config
 (mapcar #'disable-theme custom-enabled-themes)
@@ -129,7 +127,11 @@
 ;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
 ;; TODO: find related files (*.cpp -> *.h -> *test.cpp)
 
-;; TODO: Rust mode. Write it yourself so you can get experience for flowlang
+;; TODO: LLVM mode
+
+(add-to-list 'load-path "~/.emacs.d/pkgs/rust-mode/")
+(autoload 'rust-mode "rust-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 
 (global-set-key (kbd "RET") 'newline-and-indent)
 
