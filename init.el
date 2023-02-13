@@ -21,8 +21,8 @@
 ;; Change font based on what you want
 ;; TODO: Font for symbols?
 (cond
- ((find-font (font-spec :name "Liberation Mono"))
-  (setq sk/font "Liberation Mono-10"))
+ ((find-font (font-spec :name "Consolas"))
+  (setq sk/font "Consolas-10"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
   (setq sk/font "DejaVu Sans Mono-10")))
 
@@ -118,13 +118,35 @@
 ;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
 ;; TODO: find related files (*.cpp -> *.h -> *test.cpp)
 
+;; From the linux kernel coding-style
+(defun c-lineup-arglist-tabs-only (ignored)
+  "Line up argument lists by tabs, not spaces"
+  (let* ((anchor (c-langelem-pos c-syntactic-element))
+         (column (c-langelem-2nd-pos c-syntactic-element))
+         (offset (- (1+ column) anchor))
+         (steps (floor offset c-basic-offset)))
+    (* (max steps 1)
+       c-basic-offset)))
+
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            ;; Add kernel style
+            (c-add-style
+             "linux-tabs-only"
+             '("linux" (c-offsets-alist
+                        (arglist-cont-nonempty
+                         c-lineup-gcc-asm-reg
+                         c-lineup-arglist-tabs-only))))))
+
 (defun sk/set-c-style()
   (interactive)
-  (setq tab-width 2)
+  (setq tab-width 8)
   (setq c-tab-always-indent t)
-  (setq indent-tabs-mode nil)
-  (setq c-basic-offset 2)
-  (setq c-default-style "linux"))
+  (setq indent-tabs-mode t)
+  (setq c-basic-offset 8)
+  (setq show-trailing-whitespace t)
+  (setq c-default-style "linux-tabs-only"))
 (add-hook 'c-mode-common-hook 'sk/set-c-style)
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
@@ -249,34 +271,34 @@
 ;; (toggle-frame-maximized)
 
 ;; Theme: linux kernel
-;; (global-font-lock-mode 0)
-;; (add-to-list 'default-frame-alist '(cursor-color . "black"))
-;; (add-to-list 'default-frame-alist '(foreground-color . "black"))
-;; (add-to-list 'default-frame-alist '(background-color . "#ffffea"))
-;; (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
-;; (setq-default display-fill-column-indicator-column 80)
-;; (global-display-fill-column-indicator-mode)
-;; (add-to-list 'default-frame-alist '(width . 81))
-;; (add-to-list 'default-frame-alist '(height . 49))
-
-;; Theme: samiur
-(add-to-list 'default-frame-alist '(cursor-color . "green"))
-(add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
-(add-to-list 'default-frame-alist '(background-color . "black"))
-(set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
-(set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
-(set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
-(set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
-(set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
-(set-face-attribute 'font-lock-keyword-face nil :foreground "#076678")  ;; static, return keywords
-(set-face-attribute 'font-lock-string-face nil :foreground "olive drab")  ;; content inside ""
-(set-face-attribute 'font-lock-type-face nil :foreground "burlywood")  ;; std::string s; the string (std and s are covered elsewhere).
-(set-face-attribute 'font-lock-variable-name-face nil :foreground "gainsboro")  ;; void Traverse(BST *tree); the tree
-(set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
-(set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
-(set-face-attribute 'highlight nil :background "gray20" :foreground "white")
+(global-font-lock-mode 0)
+(add-to-list 'default-frame-alist '(cursor-color . "black"))
+(add-to-list 'default-frame-alist '(foreground-color . "black"))
+(add-to-list 'default-frame-alist '(background-color . "#ffffea"))
+(set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
 (setq-default display-fill-column-indicator-column 80)
 (global-display-fill-column-indicator-mode)
-(setq-default header-line-format mode-line-format)
-(setq-default mode-line-format nil)
-(toggle-frame-maximized)
+(add-to-list 'default-frame-alist '(width . 81))
+(add-to-list 'default-frame-alist '(height . 49))
+
+;; Theme: samiur
+;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
+;; (add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
+;; (add-to-list 'default-frame-alist '(background-color . "black"))
+;; (set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
+;; (set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
+;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
+;; (set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
+;; (set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
+;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#076678")  ;; static, return keywords
+;; (set-face-attribute 'font-lock-string-face nil :foreground "olive drab")  ;; content inside ""
+;; (set-face-attribute 'font-lock-type-face nil :foreground "burlywood")  ;; std::string s; the string (std and s are covered elsewhere).
+;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "gainsboro")  ;; void Traverse(BST *tree); the tree
+;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
+;; (set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
+;; (set-face-attribute 'highlight nil :background "gray20" :foreground "white")
+;; (setq-default display-fill-column-indicator-column 80)
+;; (global-display-fill-column-indicator-mode)
+;; (setq-default header-line-format mode-line-format)
+;; (setq-default mode-line-format nil)
+;; (toggle-frame-maximized)
