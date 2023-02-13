@@ -23,12 +23,8 @@
 (cond
  ((find-font (font-spec :name "Liberation Mono"))
   (setq sk/font "Liberation Mono-10"))
- ((find-font (font-spec :name "Consolas"))
-  (setq sk/font "Consolas-12"))
- ((find-font (font-spec :name "Lucida Console"))
-  (setq sk/font "Lucida Console-12"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
-  (setq sk/font "DejaVu Sans Mono-15")))
+  (setq sk/font "DejaVu Sans Mono-10")))
 
 ;; Backup dirs
 ;; Optional disabling of autosave with these:
@@ -47,7 +43,7 @@
       `((".*" "~/.emacs-saves/" t)))
 
 ;; Fonts and Windowing
-;; Themes set at the bottom of config
+;; NOTE: Themes set at the bottom of config
 (mapcar #'disable-theme custom-enabled-themes)
 
 (set-frame-font sk/font nil t)
@@ -65,8 +61,7 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(set-fringe-mode 0)
-(toggle-frame-maximized)
+(set-fringe-mode '(1 . 1))
 
 ;; Navigation and search
 (if (version< emacs-version "28.1")
@@ -79,8 +74,10 @@
 (setq ido-use-filename-at-point 'guess)
 (setq ido-create-new-buffer 'always)
 
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "M-p") 'backward-paragraph)
+
 ;; TODO: Learn more about configuring hippie-expand
-;; NOTE: C-x d is dired by default
 (global-set-key (kbd "M-/") 'hippie-expand)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
@@ -104,7 +101,8 @@
 (show-paren-mode 1)
 (setq show-paren-style 'parenthesis)
 
-(setq fixme-modes '(c++-mode c-mode emacs-lisp-mode bat-mode))
+(setq fixme-modes
+      '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
 (make-face 'font-lock-fixme-face)
 (make-face 'font-lock-note-face)
 (mapc (lambda (mode)
@@ -116,16 +114,18 @@
 (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
 (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
 
-;; TODO: Custom style guide for C/C++
-(setq c-default-style "linux"
-      c-basic-offset 4
-      tab-width 4
-      intend-tab-mode t
-      c-tab-always-indent t)
-
 ;; In case you encounter a file that doesn't fall under c mode
 ;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
 ;; TODO: find related files (*.cpp -> *.h -> *test.cpp)
+
+(defun sk/set-c-style()
+  (interactive)
+  (setq tab-width 2)
+  (setq c-tab-always-indent t)
+  (setq indent-tabs-mode nil)
+  (setq c-basic-offset 2)
+  (setq c-default-style "linux"))
+(add-hook 'c-mode-common-hook 'sk/set-c-style)
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
 ;; NOTE: If you notice missing or incorrect syntax highlighting, please contact
@@ -151,8 +151,6 @@
 				   (member-init-intro . ++)
 				   (statement-cont . llvm-lineup-statement)))))
 
-;; Files with "llvm" in their names will automatically be set to the
-;; llvm.org coding style.
 (add-hook 'c-mode-common-hook
 	  (function
 	   (lambda nil 
@@ -167,8 +165,8 @@
 (autoload 'rust-mode "rust-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 (add-hook 'rust-mode-hook
-	  ;; (lambda () (local-set-key (kbd "C-c m") 'rust-compile))
-	  ;; (lambda () (local-set-key (kbd "C-c c") 'rust-check))
+	  (lambda () (local-set-key (kbd "C-c m") 'rust-compile))
+	  (lambda () (local-set-key (kbd "C-c c") 'rust-check))
           (lambda () (setq indent-tabs-mode nil)))
 (setq rust-format-on-save t)
 
@@ -199,17 +197,21 @@
 (setq-default tab-always-indent 'complete)
 
 ;; Compilation
+;; TODO: compile should default to build.bat?
+;; NOTE: C-x ` or M-g n/p go to next or previous error
 (global-set-key (kbd "C-c C-g") 'compile)
 (global-set-key (kbd "C-c g") 'recompile)
-;; NOTE: C-x ` or M-g n/p go to next or previous error
-(defun sk/compile ()
-  (interactive)
-  (compile sk/build))
-(global-set-key (kbd "C-c m") 'sk/compile)
 
-;; TODO: Make compilation lines turn dark-red (381e1e)  
-;; NOTE: use flymake src as inspiration
+;; (require 'flymake)
+;; (setq flymake-start-on-save-buffer t)
+;; (defun sk/flymake-cc-init ()
+;;   (list sk/build))
+;; (push '("\\.cpp$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
+;; (push '("\\.hpp$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
+;; (push '("\\.cc$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
+;; (add-hook 'c++-mode-hook 'flymake-mode)
 
+;; TODO: Make compilation lines turn dark-red (381e1e)
 (defun sk/compilation-hook ()
   (setq compilation-scroll-output nil)
   (make-local-variable 'truncate-lines)
@@ -241,7 +243,10 @@
 ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
 ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
 ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; more..gray? #292929
+;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
+;; (setq-default display-fill-column-indicator-column 80)
+;; (global-display-fill-column-indicator-mode)
+;; (toggle-frame-maximized)
 
 ;; Theme: linux kernel
 ;; (global-font-lock-mode 0)
@@ -251,13 +256,15 @@
 ;; (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
 ;; (setq-default display-fill-column-indicator-column 80)
 ;; (global-display-fill-column-indicator-mode)
+;; (add-to-list 'default-frame-alist '(width . 81))
+;; (add-to-list 'default-frame-alist '(height . 49))
 
 ;; Theme: samiur
 (add-to-list 'default-frame-alist '(cursor-color . "green"))
 (add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
 (add-to-list 'default-frame-alist '(background-color . "black"))
 (set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
-(set-face-attribute 'font-lock-comment-face nil :foreground "light salmon")  ;; content inside /**/ or after // or ;;
+(set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
 (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
 (set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
 (set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
@@ -272,3 +279,4 @@
 (global-display-fill-column-indicator-mode)
 (setq-default header-line-format mode-line-format)
 (setq-default mode-line-format nil)
+(toggle-frame-maximized)
