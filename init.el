@@ -23,6 +23,8 @@
 (cond
  ((find-font (font-spec :name "Consolas"))
   (setq sk/font "Consolas-10"))
+ ((find-font (font-spec :name "Liberation Mono"))
+  (setq sk/font "Liberation Mono-10"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
   (setq sk/font "DejaVu Sans Mono-10")))
 
@@ -139,15 +141,18 @@
                          c-lineup-gcc-asm-reg
                          c-lineup-arglist-tabs-only))))))
 
-(defun sk/set-c-style()
-  (interactive)
-  (setq tab-width 8)
-  (setq c-tab-always-indent t)
-  (setq indent-tabs-mode t)
-  (setq c-basic-offset 8)
-  (setq show-trailing-whitespace t)
-  (setq c-default-style "linux-tabs-only"))
-(add-hook 'c-mode-common-hook 'sk/set-c-style)
+;; (defun sk/set-c-style()
+;;   (interactive)
+;;   (setq tab-width 8)
+;;   (setq c-tab-always-indent t)
+;;   (setq indent-tabs-mode t)
+;;   (setq c-basic-offset 8)
+;;   (setq show-trailing-whitespace t)
+;;   (setq c-default-style "linux-tabs-only"))
+;; (add-hook 'c-mode-common-hook 'sk/set-c-style)
+
+(add-to-list 'load-path "~/.emacs.d/pkgs/")
+(add-hook 'c-mode-common-hook 'google-set-c-style)
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
 ;; NOTE: If you notice missing or incorrect syntax highlighting, please contact
@@ -246,7 +251,7 @@
       gc-cons-percentage 0.1
       file-name-handler-alist last-file-name-handler-alist)
 
-;; Theme: ocean green blue
+;; Theme: Samiur's Solarized
 ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
 ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
 ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
@@ -270,7 +275,7 @@
 ;; (global-display-fill-column-indicator-mode)
 ;; (toggle-frame-maximized)
 
-;; Theme: linux kernel
+;; Theme: Acme
 (global-font-lock-mode 0)
 (add-to-list 'default-frame-alist '(cursor-color . "black"))
 (add-to-list 'default-frame-alist '(foreground-color . "black"))
@@ -278,10 +283,11 @@
 (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
 (setq-default display-fill-column-indicator-column 80)
 (global-display-fill-column-indicator-mode)
-(add-to-list 'default-frame-alist '(width . 81))
+(add-to-list 'default-frame-alist '(width . 161))
 (add-to-list 'default-frame-alist '(height . 49))
+(split-window-horizontally)
 
-;; Theme: samiur
+;; Theme: Samiur's Gruvbox
 ;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
 ;; (add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
 ;; (add-to-list 'default-frame-alist '(background-color . "black"))
