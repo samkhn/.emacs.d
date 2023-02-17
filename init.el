@@ -22,6 +22,8 @@
 ;; Change font based on what you want
 ;; TODO: Font for symbols?
 (cond
+ ((find-font (font-spec :name "Source Code Pro"))
+  (setq sk/font "Source Code Pro Medium-9"))
  ((find-font (font-spec :name "Consolas"))
   (setq sk/font "Consolas-10"))
  ((find-font (font-spec :name "Liberation Mono"))
@@ -247,35 +249,35 @@
 ;; (toggle-frame-maximized)
 
 ;; Theme: Acme
-;; (global-font-lock-mode 0)
-;; (add-to-list 'default-frame-alist '(cursor-color . "black"))
-;; (add-to-list 'default-frame-alist '(foreground-color . "black"))
-;; (add-to-list 'default-frame-alist '(background-color . "#ffffea"))
-;; (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
-;; (setq-default display-fill-column-indicator-column 80)
-;; (global-display-fill-column-indicator-mode)
-;; (add-to-list 'default-frame-alist '(width . 161))
-;; (add-to-list 'default-frame-alist '(height . 49))
-;; (split-window-horizontally)
-
-;; theme: Samiur's Gruvbox
-(add-to-list 'default-frame-alist '(cursor-color . "green"))
-(add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
-(add-to-list 'default-frame-alist '(background-color . "black"))
-(set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
-(set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
-(set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
-(set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
-(set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
-(set-face-attribute 'font-lock-keyword-face nil :foreground "#076678")  ;; static, return keywords
-(set-face-attribute 'font-lock-string-face nil :foreground "olive drab")  ;; content inside ""
-(set-face-attribute 'font-lock-type-face nil :foreground "burlywood")  ;; std::string s; the string (std and s are covered elsewhere).
-(set-face-attribute 'font-lock-variable-name-face nil :foreground "gainsboro")  ;; void Traverse(BST *tree); the tree
-(set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
-(set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
-(set-face-attribute 'highlight nil :background "gray20" :foreground "white")
+(global-font-lock-mode 0)
+(add-to-list 'default-frame-alist '(cursor-color . "black"))
+(add-to-list 'default-frame-alist '(foreground-color . "black"))
+(add-to-list 'default-frame-alist '(background-color . "#ffffea"))
+(set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
 (setq-default display-fill-column-indicator-column 80)
 (global-display-fill-column-indicator-mode)
-(setq-default header-line-format mode-line-format)
-(setq-default mode-line-format nil)
-;; (toggle-frame-maximized)
+(add-to-list 'default-frame-alist '(width . 161))
+(add-to-list 'default-frame-alist '(height . 48))
+(split-window-horizontally)
+
+;; theme: Samiur's Gruvbox
+;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
+;; (add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
+;; (add-to-list 'default-frame-alist '(background-color . "black"))
+;; (set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
+;; (set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
+;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
+;; (set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
+;; (set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
+;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#076678")  ;; static, return keywords
+;; (set-face-attribute 'font-lock-string-face nil :foreground "olive drab")  ;; content inside ""
+;; (set-face-attribute 'font-lock-type-face nil :foreground "burlywood")  ;; std::string s; the string (std and s are covered elsewhere).
+;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "gainsboro")  ;; void Traverse(BST *tree); the tree
+;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
+;; (set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
+;; (set-face-attribute 'highlight nil :background "gray20" :foreground "white")
+;; (setq-default display-fill-column-indicator-column 80)
+;; (global-display-fill-column-indicator-mode)
+;; (setq-default header-line-format mode-line-format)
+;; (setq-default mode-line-format nil)
+;; ;; (toggle-frame-maximized)
