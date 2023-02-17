@@ -8,9 +8,11 @@
       gc-cons-percentage 0.6
       file-name-handler-alist nil)
 
-(set-language-environment "UTF-8")
 (setq ring-bell-function 'ignore)
 (setq custom-file (concat user-emacs-directory "custom.el"))
+
+(set-language-environment "UTF-8")
+(setq-default buffer-file-coding-system 'utf-8-unix)
 
 ;; (cond
 ;;  ((eq system-type 'windows-nt)
@@ -106,18 +108,18 @@
 (show-paren-mode 1)
 (setq show-paren-style 'parenthesis)
 
-(setq fixme-modes
-      '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
-(make-face 'font-lock-fixme-face)
-(make-face 'font-lock-note-face)
-(mapc (lambda (mode)
-	(font-lock-add-keywords
-	 mode
-	 '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-           ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
-      fixme-modes)
-(modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
-(modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
+;; (setq fixme-modes
+;;       '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
+;; (make-face 'font-lock-fixme-face)
+;; (make-face 'font-lock-note-face)
+;; (mapc (lambda (mode)
+;; 	(font-lock-add-keywords
+;; 	 mode
+;; 	 '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
+;;            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
+;;       fixme-modes)
+;; (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
+;; (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
 
 ;; In case you encounter a file that doesn't fall under c mode
 ;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
@@ -126,6 +128,15 @@
 (load "~/.emacs.d/pkgs/google-c-style")
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
+
+(add-to-list 'load-path "~/.emacs.d/pkgs/go-mode")
+(autoload 'go-mode "go-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+(add-hook 'before-save-hook 'gofmt-before-save)
+;; Make sure go def is installed
+;; Run: go install github.com/rogpeppe/godef@latest
+(add-hook 'go-mode-hook (lambda ()
+                          (local-set-key (kbd "M-.") 'godef-jump)))
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
 ;; NOTE: If you notice missing or incorrect syntax highlighting, please contact
