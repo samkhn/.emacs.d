@@ -25,7 +25,7 @@
 ;; TODO: Font for symbols?
 (cond
  ((find-font (font-spec :name "Source Code Pro"))
-  (setq sk/font "Source Code Pro Medium-9"))
+  (setq sk/font "Source Code Pro-8"))
  ((find-font (font-spec :name "Consolas"))
   (setq sk/font "Consolas-10"))
  ((find-font (font-spec :name "Liberation Mono"))
@@ -121,13 +121,19 @@
 ;; (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
 ;; (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
 
-;; In case you encounter a file that doesn't fall under c mode
-;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
-;; TODO: find related files (*.cpp -> *.h -> *test.cpp)
+(defun sk/run()
+  (interactive)
+  (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
+    (async-shell-command region)))
+(global-set-key (kbd "C-c r") 'sk/run)
+
+;; Language modes and styling
 
 (load "~/.emacs.d/pkgs/google-c-style")
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
+;; In case you encounter a file that doesn't fall under c mode
+;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
 
 (add-to-list 'load-path "~/.emacs.d/pkgs/go-mode")
 (autoload 'go-mode "go-mode" nil t)
@@ -267,9 +273,10 @@
 (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
 (setq-default display-fill-column-indicator-column 80)
 (global-display-fill-column-indicator-mode)
+(setq-default header-line-format mode-line-format)
+(setq-default mode-line-format nil)
 (add-to-list 'default-frame-alist '(width . 161))
 (add-to-list 'default-frame-alist '(height . 48))
-(split-window-horizontally)
 
 ;; theme: Samiur's Gruvbox
 ;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
