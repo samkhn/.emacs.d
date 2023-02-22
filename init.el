@@ -26,12 +26,15 @@
 (cond
  ((find-font (font-spec :name "Source Code Pro"))
   (setq sk/font "Source Code Pro-8"))
- ((find-font (font-spec :name "Consolas"))
-  (setq sk/font "Consolas-10"))
+ ((find-font (font-spec :name "Lucida Console"))
+  (setq sk/font "Lucida Console-9"))
  ((find-font (font-spec :name "Liberation Mono"))
-  (setq sk/font "Liberation Mono-10"))
+  (setq sk/font "Liberation Mono-9"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
-  (setq sk/font "DejaVu Sans Mono-10")))
+  (setq sk/font "DejaVu Sans Mono-9")))
+
+(set-frame-font sk/font nil t)
+(set-face-attribute 'default t :font sk/font)
 
 ;; Backup dirs
 ;; Optional disabling of autosave with these:
@@ -53,22 +56,14 @@
 ;; NOTE: Themes set at the bottom of config
 (mapcar #'disable-theme custom-enabled-themes)
 
-(set-frame-font sk/font nil t)
-(set-face-attribute 'default t :font sk/font)
-
 (setq resize-mini-windows t)
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-screen t)
+
 ;; Add bookmark with C-x r m
 ;; List bookmark with C-x r l
 ;; Jump to bookmark C-x r b
 ;; TODO: Might want to setq-default bookmark-default-file
-
-(setq column-number-mode t)  
-(scroll-bar-mode -1)
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(set-fringe-mode '(1 . 1))
 
 ;; Navigation and search
 (if (version< emacs-version "28.1")
@@ -108,26 +103,36 @@
 (show-paren-mode 1)
 (setq show-paren-style 'parenthesis)
 
-;; (setq fixme-modes
-;;       '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
-;; (make-face 'font-lock-fixme-face)
-;; (make-face 'font-lock-note-face)
-;; (mapc (lambda (mode)
-;; 	(font-lock-add-keywords
-;; 	 mode
-;; 	 '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-;;            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
-;;       fixme-modes)
-;; (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
-;; (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
-
-(defun sk/run()
+(defun sk/run ()
   (interactive)
   (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
     (async-shell-command region)))
 (global-set-key (kbd "C-c r") 'sk/run)
+(global-set-key (vector (list 'control mouse-wheel-up-event)) 'sk/run)
+
+(defun sk/click-to-search (*click)
+  (interactive "e")
+  (let ((p1 (posn-point (event-start *click))))
+    (goto-char p1)
+    (isearch-forward-symbol-at-point)))
+(global-set-key (kbd "<mouse-3>") 'sk/click-to-search)
+
+(setq initial-scratch-message "")
+
+(defun sk/switch-to-shell ()
+  (interactive)
+  (select-window
+   (display-buffer-in-side-window
+    (save-window-excursion
+      (call-interactively #'shell)
+      (current-buffer))
+    '((side . bottom)))))
+(global-set-key (kbd "C-`") 'sk/switch-to-shell)
 
 ;; Language modes and styling
+(global-set-key (kbd "RET") 'newline-and-indent)
+(setq-default tab-always-indent 'complete)
+(set-default 'truncate-lines t)
 
 (load "~/.emacs.d/pkgs/google-c-style")
 (require 'google-c-style)
@@ -190,10 +195,6 @@
 (add-to-list 'load-path "~/.emacs.d/pkgs/cmake-mode/")
 (require 'cmake-mode)
 
-(global-set-key (kbd "RET") 'newline-and-indent)
-
-(set-default 'truncate-lines t)
-
 (defun sk/go-to-column (column)
   "By default M-g M-g goes to line. Here is goto column"
   (interactive "nColumn: ")
@@ -211,22 +212,10 @@
     (kill-region (point) prev-pos)))
 (global-set-key (kbd "C-M-<backspace>") 'sk/kill-back-to-indentation)
 
-(setq-default tab-always-indent 'complete)
-
 ;; Compilation
-;; TODO: compile should default to build.bat?
 ;; NOTE: C-x ` or M-g n/p go to next or previous error
 (global-set-key (kbd "C-c C-g") 'compile)
 (global-set-key (kbd "C-c g") 'recompile)
-
-;; (require 'flymake)
-;; (setq flymake-start-on-save-buffer t)
-;; (defun sk/flymake-cc-init ()
-;;   (list sk/build))
-;; (push '("\\.cpp$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
-;; (push '("\\.hpp$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
-;; (push '("\\.cc$" sk/flymake-cc-init) flymake-allowed-file-name-masks)
-;; (add-hook 'c++-mode-hook 'flymake-mode)
 
 ;; TODO: Make compilation lines turn dark-red (381e1e)
 (defun sk/compilation-hook ()
@@ -236,11 +225,52 @@
   (setq compilation-error-screen-columns nil))
 (add-hook 'compilation-mode-hook 'sk/compilation-hook)
 
-;; Reset gc after loading config
-(setq gc-cons-threshold 16777216
-      gc-cons-percentage 0.1
-      file-name-handler-alist last-file-name-handler-alist)
+;; Visual
 
+(setq column-number-mode t)  
+(scroll-bar-mode -1)  ;; scroll bar left w/ (set-scroll-bar-mode 'left)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(set-fringe-mode '(1 . 1))
+
+(global-font-lock-mode 0)  ;; no syntax highlighting
+
+;; TODO: introduce 80 char limit for C++ files only
+(setq-default display-fill-column-indicator-column 80)
+(global-display-fill-column-indicator-mode)
+
+(setq-default header-line-format mode-line-format)
+(setq-default mode-line-format nil)
+
+;; (toggle-frame-maximized)
+(add-to-list 'default-frame-alist '(width . 161))
+(add-to-list 'default-frame-alist '(height . 48))
+
+(setq-default cursor-type 'bar)
+
+;; Theme: Acme
+(add-to-list 'default-frame-alist '(cursor-color . "black"))
+(add-to-list 'default-frame-alist '(foreground-color . "black"))
+(add-to-list 'default-frame-alist '(background-color . "#ffffea"))
+(set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
+
+;; If using a color theme, use this to color TODO and NOTE
+;; (setq fixme-modes
+;;       '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
+;; (make-face 'font-lock-fixme-face)
+;; (make-face 'font-lock-note-face)
+;; (mapc (lambda (mode)
+;; 	(font-lock-add-keywords
+;; 	 mode
+;; 	 '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
+;;            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
+;;       fixme-modes)
+;; (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
+;; (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
+
+;; TODO: move these themes to their own files
+;; TODO: tie fonts to these themes? e.g. Lucida Console to Solarized and
+;; Liberation Mono to Gruvbox and Source Code Pro to Acme.
 ;; Theme: Samiur's Solarized
 ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
 ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
@@ -261,22 +291,6 @@
 ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
 ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
 ;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
-;; (setq-default display-fill-column-indicator-column 80)
-;; (global-display-fill-column-indicator-mode)
-;; (toggle-frame-maximized)
-
-;; Theme: Acme
-(global-font-lock-mode 0)
-(add-to-list 'default-frame-alist '(cursor-color . "black"))
-(add-to-list 'default-frame-alist '(foreground-color . "black"))
-(add-to-list 'default-frame-alist '(background-color . "#ffffea"))
-(set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
-(setq-default display-fill-column-indicator-column 80)
-(global-display-fill-column-indicator-mode)
-(setq-default header-line-format mode-line-format)
-(setq-default mode-line-format nil)
-(add-to-list 'default-frame-alist '(width . 161))
-(add-to-list 'default-frame-alist '(height . 48))
 
 ;; theme: Samiur's Gruvbox
 ;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
@@ -294,8 +308,9 @@
 ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
 ;; (set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
 ;; (set-face-attribute 'highlight nil :background "gray20" :foreground "white")
-;; (setq-default display-fill-column-indicator-column 80)
-;; (global-display-fill-column-indicator-mode)
-;; (setq-default header-line-format mode-line-format)
-;; (setq-default mode-line-format nil)
-;; ;; (toggle-frame-maximized)
+
+;; Reset gc after loading config
+(setq gc-cons-threshold 16777216
+      gc-cons-percentage 0.1
+      file-name-handler-alist last-file-name-handler-alist)
+
