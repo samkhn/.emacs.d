@@ -14,25 +14,17 @@
 (set-language-environment "UTF-8")
 (setq-default buffer-file-coding-system 'utf-8-unix)
 
-;; (cond
-;;  ((eq system-type 'windows-nt)
-;;   (setq sk/build "nmake /F Makefile.msvc"))
-;;  ((eq system-type 'gnu/linux)
-;;   (setq sk/build "make")))
-;; (setq compile-command sk/build)
-
-;; Change font based on what you want
 ;; TODO: Font for symbols?
 (cond
  ((find-font (font-spec :name "Source Code Pro"))
-  (setq sk/font "Source Code Pro-8"))
+  (setq sk/font "Source Code Pro-14"))
  ((find-font (font-spec :name "Lucida Console"))
   (setq sk/font "Lucida Console-9"))
  ((find-font (font-spec :name "Liberation Mono"))
   (setq sk/font "Liberation Mono-9"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
   (setq sk/font "DejaVu Sans Mono-9")))
-
+  
 (set-frame-font sk/font nil t)
 (set-face-attribute 'default t :font sk/font)
 
