@@ -62,12 +62,6 @@
     (defalias 'yes-or-no-p 'y-or-n-p)
   (setq use-short-answers t))  ; replace yes/no prompt with y/n everywhere
 
-(setq ido-enable-flex-matching t)
-(setq ido-everywhere t)
-(ido-mode 1)
-(setq ido-use-filename-at-point 'guess)
-(setq ido-create-new-buffer 'always)
-
 (global-set-key (kbd "M-n") 'forward-paragraph)
 (global-set-key (kbd "M-p") 'backward-paragraph)
 
@@ -131,15 +125,14 @@
 (add-hook 'c-mode-common-hook 'google-set-c-style)
 ;; In case you encounter a file that doesn't fall under c mode
 ;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
+;; TODO: run clang-format on save
 
 (add-to-list 'load-path "~/.emacs.d/pkgs/go-mode")
 (autoload 'go-mode "go-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
 (add-hook 'before-save-hook 'gofmt-before-save)
-;; Make sure go def is installed
-;; Run: go install github.com/rogpeppe/godef@latest
-(add-hook 'go-mode-hook (lambda ()
-                          (local-set-key (kbd "M-.") 'godef-jump)))
+(add-hook 'go-mode-hook
+         (lambda () (add-hook 'before-save-hook 'gofmt-before-save)))
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
 ;; NOTE: If you notice missing or incorrect syntax highlighting, please contact
@@ -209,7 +202,23 @@
 (global-set-key (kbd "C-c C-g") 'compile)
 (global-set-key (kbd "C-c g") 'recompile)
 
-;; TODO: Make compilation lines turn dark-red (381e1e)
+(defun sk/set-compile-from-cmake ()
+  (let ((cmakefile nil) (dirname default-directory))
+    (while (and (not (string= dirname "/")) (not cmakefile))
+      (setq cmakefile (concat (file-name-as-directory dirname) "CMakeLists.txt"))
+      (if (not (file-exists-p cmakefile))
+         (progn
+           (setq cmakefile nil)
+           (setq dirname (expand-file-name
+                          (concat (file-name-as-directory dirname) ".."))))))
+    (if cmakefile
+       (let ((builddir (concat (file-name-directory cmakefile) "build")))
+         (if (file-exists-p builddir)
+             (let ((ninja (concat (file-name-as-directory builddir) "build.ninja")))
+               (if (file-exists-p ninja)
+                   (set (make-local-variable 'compile-command) (concat "ninja -C " (shell-quote-argument builddir))))))))))
+(add-hook 'c-mode-common-hook 'sk/set-compile-from-cmake)
+
 (defun sk/compilation-hook ()
   (setq compilation-scroll-output nil)
   (make-local-variable 'truncate-lines)
