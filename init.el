@@ -16,14 +16,10 @@
 
 ;; TODO: Font for symbols?
 (cond
- ((find-font (font-spec :name "Source Code Pro"))
-  (setq sk/font "Source Code Pro-14"))
- ((find-font (font-spec :name "Lucida Console"))
-  (setq sk/font "Lucida Console-9"))
- ((find-font (font-spec :name "Liberation Mono"))
-  (setq sk/font "Liberation Mono-9"))
  ((find-font (font-spec :name "DejaVu Sans Mono"))
-  (setq sk/font "DejaVu Sans Mono-9")))
+  (setq sk/font "DejaVu Sans Mono-9"))
+ ((find-font (font-spec :name "Lucida Console"))
+  (setq sk/font "Lucida Console-9")))
   
 (set-frame-font sk/font nil t)
 (set-face-attribute 'default t :font sk/font)
@@ -55,7 +51,6 @@
 ;; Add bookmark with C-x r m
 ;; List bookmark with C-x r l
 ;; Jump to bookmark C-x r b
-;; TODO: Might want to setq-default bookmark-default-file
 
 ;; Navigation and search
 (if (version< emacs-version "28.1")
@@ -89,12 +84,13 @@
 (show-paren-mode 1)
 (setq show-paren-style 'parenthesis)
 
-(defun sk/run ()
+;; Acme style run a selection with middle mouse
+(defun sk/run-region ()
   (interactive)
   (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
     (async-shell-command region)))
-(global-set-key (kbd "C-c r") 'sk/run)
-(global-set-key (vector (list 'control mouse-wheel-up-event)) 'sk/run)
+(global-set-key (kbd "C-c r") 'sk/run-region)
+(global-set-key [mouse-2] 'sk/run-region)
 
 (defun sk/click-to-search (*click)
   (interactive "e")
@@ -105,6 +101,7 @@
 
 (setq initial-scratch-message "")
 
+; TODO: toggle shell instead of just open
 (defun sk/switch-to-shell ()
   (interactive)
   (select-window
@@ -116,23 +113,27 @@
 (global-set-key (kbd "C-`") 'sk/switch-to-shell)
 
 ;; Language modes and styling
-(global-set-key (kbd "RET") 'newline-and-indent)
-(setq-default tab-always-indent 'complete)
 (set-default 'truncate-lines t)
+(global-set-key (kbd "RET") 'newline-and-indent)
+(setq-default tab-always-indent 'complete
+			  tab-width 4
+			  intend-tabs-mode t)
+
+(add-to-list 'auto-mode-alist '("\\.tpp\\'" . c++-mode))
 
 (load "~/.emacs.d/pkgs/google-c-style")
 (require 'google-c-style)
 (add-hook 'c-mode-common-hook 'google-set-c-style)
-;; In case you encounter a file that doesn't fall under c mode
-;;  (add-to-list 'auto-mode-alist '("\\.ext\\'" . c-mode))
-;; TODO: run clang-format on save
+(add-hook 'c++-mode-hook
+		  '(lambda ()(highlight-lines-matching-regexp ".\\{81\\}" 'hi-green)))
+;; (add-hook 'c-mode-common-hook
+;; 	  (function
+;; 	   (lambda nil 
+;; 	     (progn
+;; 	       (setq-default display-fill-column-indicator-column 80)
+;; 	       (global-display-fill-column-indicator-mode)))))
 
-(add-to-list 'load-path "~/.emacs.d/pkgs/go-mode")
-(autoload 'go-mode "go-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
-(add-hook 'before-save-hook 'gofmt-before-save)
-(add-hook 'go-mode-hook
-         (lambda () (add-hook 'before-save-hook 'gofmt-before-save)))
+;; TODO: run clang-format on save
 
 ;; NOTE: LLVM sub-config. Maintainer: LLVM Team, http://llvm.org/
 ;; NOTE: If you notice missing or incorrect syntax highlighting, please contact
@@ -172,19 +173,23 @@
 (autoload 'rust-mode "rust-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 (add-hook 'rust-mode-hook
-	  (lambda () (local-set-key (kbd "C-c m") 'rust-compile))
+	  (lambda () (local-set-key (kbd "C-c g") 'rust-compile))
 	  (lambda () (local-set-key (kbd "C-c c") 'rust-check))
-          (lambda () (setq indent-tabs-mode nil)))
+      (lambda () (setq indent-tabs-mode nil)))
 (setq rust-format-on-save t)
 
-(add-to-list 'load-path "~/.emacs.d/pkgs/cmake-mode/")
-(require 'cmake-mode)
+(add-to-list 'load-path "~/.emacs.d/pkgs/go-mode")
+(autoload 'go-mode "go-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+(add-hook 'go-mode-hook
+         (lambda () (add-hook 'before-save-hook 'gofmt-before-save)))
 
 (defun sk/go-to-column (column)
   "By default M-g M-g goes to line. Here is goto column"
   (interactive "nColumn: ")
   (move-to-column column t))
 (global-set-key (kbd "M-g M-c") #'sk/go-to-column)
+;; M-g -> go to line, M-g c is go to character
 
 ;; TODO: Move lines up/down with M-up M-down
 ;; TODO: consider a replacement for query-and-replace (M-%)?
@@ -202,7 +207,10 @@
 (global-set-key (kbd "C-c C-g") 'compile)
 (global-set-key (kbd "C-c g") 'recompile)
 
+(add-to-list 'load-path "~/.emacs.d/pkgs/cmake-mode/")
+(require 'cmake-mode)
 (defun sk/set-compile-from-cmake ()
+  (interactive)
   (let ((cmakefile nil) (dirname default-directory))
     (while (and (not (string= dirname "/")) (not cmakefile))
       (setq cmakefile (concat (file-name-as-directory dirname) "CMakeLists.txt"))
@@ -228,87 +236,25 @@
 
 ;; Visual
 
-(setq column-number-mode t)  
+(add-to-list 'default-frame-alist '(height . 60))
+(add-to-list 'default-frame-alist '(width . 160))
+;; (toggle-frame-maximized)
+
+(setq column-number-mode t)
 (scroll-bar-mode -1)  ;; scroll bar left w/ (set-scroll-bar-mode 'left)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (set-fringe-mode '(1 . 1))
+(setq-default header-line-format mode-line-format)
+(setq-default mode-line-format nil)
+(setq-default cursor-type 'bar)
 
 (global-font-lock-mode 0)  ;; no syntax highlighting
 
-;; TODO: introduce 80 char limit for C++ files only
-(setq-default display-fill-column-indicator-column 80)
-(global-display-fill-column-indicator-mode)
-
-(setq-default header-line-format mode-line-format)
-(setq-default mode-line-format nil)
-
-;; (toggle-frame-maximized)
-(add-to-list 'default-frame-alist '(width . 161))
-(add-to-list 'default-frame-alist '(height . 48))
-
-(setq-default cursor-type 'bar)
-
-;; Theme: Acme
 (add-to-list 'default-frame-alist '(cursor-color . "black"))
 (add-to-list 'default-frame-alist '(foreground-color . "black"))
 (add-to-list 'default-frame-alist '(background-color . "#ffffea"))
 (set-face-attribute 'highlight nil :background "#gray50" :foreground "nil")
-
-;; If using a color theme, use this to color TODO and NOTE
-;; (setq fixme-modes
-;;       '(c++-mode c-mode emacs-lisp-mode text-mode rust-mode llvm-mode bat-mode))
-;; (make-face 'font-lock-fixme-face)
-;; (make-face 'font-lock-note-face)
-;; (mapc (lambda (mode)
-;; 	(font-lock-add-keywords
-;; 	 mode
-;; 	 '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-;;            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
-;;       fixme-modes)
-;; (modify-face 'font-lock-fixme-face "Green" nil nil t nil t nil nil)
-;; (modify-face 'font-lock-note-face "White" nil nil t nil t nil nil)
-
-;; TODO: move these themes to their own files
-;; TODO: tie fonts to these themes? e.g. Lucida Console to Solarized and
-;; Liberation Mono to Gruvbox and Source Code Pro to Acme.
-;; Theme: Samiur's Solarized
-;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
-;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
-;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
-;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
-;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
-;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
-;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
-;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
-;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
-;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
-;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
-;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
-;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
-;; (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
-;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
-;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
-;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
-;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
-
-;; theme: Samiur's Gruvbox
-;; (add-to-list 'default-frame-alist '(cursor-color . "green"))
-;; (add-to-list 'default-frame-alist '(foreground-color . "white smoke"))
-;; (add-to-list 'default-frame-alist '(background-color . "black"))
-;; (set-face-attribute 'font-lock-builtin-face nil :foreground "white smoke")
-;; (set-face-attribute 'font-lock-comment-face nil :foreground "gray50")  ;; content inside /**/ or after // or ;;
-;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#076678")  ;; e.g. // or /**/ in C or ;; in lisp
-;; (set-face-attribute 'font-lock-constant-face nil :foreground "light salmon")  ;; e.g. in std::string, the std
-;; (set-face-attribute 'font-lock-function-name-face nil :foreground "orange red")  ;; void Do(), the Do
-;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#076678")  ;; static, return keywords
-;; (set-face-attribute 'font-lock-string-face nil :foreground "olive drab")  ;; content inside ""
-;; (set-face-attribute 'font-lock-type-face nil :foreground "burlywood")  ;; std::string s; the string (std and s are covered elsewhere).
-;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "gainsboro")  ;; void Traverse(BST *tree); the tree
-;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "gainsboro")  ;; e.g. #include
-;; (set-face-attribute 'region nil :background "gray20" :foreground "white")  ;; what you select with marking
-;; (set-face-attribute 'highlight nil :background "gray20" :foreground "white")
 
 ;; Reset gc after loading config
 (setq gc-cons-threshold 16777216
