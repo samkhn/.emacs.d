@@ -10,11 +10,18 @@
 
 ;; Navigation and search
 
-(require 'ido)
-(ido-mode 1)
-(setq ido-everywhere t)
-(setq ido-enable-flex-matching t)
-;; When doing ido-find-file, press C-t to switch to regex search
+(require 'ivy)
+(require 'counsel)
+(require 'swiper)
+(ivy-mode)
+(setq ivy-use-virtual-buffers t)
+(setq enable-recursive-minibuffers t)
+;; enable this if you want `swiper' to use it
+;; (setq search-default-mode #'char-fold-to-regexp)
+(global-set-key (kbd "C-s") 'swiper-isearch)
+(global-set-key (kbd "M-x") 'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
 
 (when (fboundp 'windmove-default-keybindings)
   (windmove-default-keybindings))
@@ -28,6 +35,7 @@
 (require 'recentf)
 (recentf-mode t)
 (setq recentf-max-saved-items 50)
+(global-set-key "\C-x\ \C-r" 'counsel-recentf)
 
 ;; Editing
 
@@ -278,9 +286,7 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
   (setq grep-command "rg -nS --no-heading "
         grep-use-null-device nil))
 
-(global-set-key (kbd "C-c s") 'grep)
-(global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
+(global-set-key (kbd "C-c s") 'counsel-rg)
 
 ;; Experiment
 (defun sk/click-to-search (*click)
@@ -412,3 +418,7 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       (setq special-display-frame-alist default-frame-alist))
   ;; Terminal graphical mode settings
   )
+
+
+(when (executable-find "fbclone")
+  (load (expand-file-name (concat user-emacs-directory "lisp/meta.el"))))
