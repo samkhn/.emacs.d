@@ -244,10 +244,12 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 
 ;; NOTE: verilog mode has its own set of keybinds.
 
-(setq load-path (cons "~/install/otp-2023-12-25/lib/erlang/lib/tools-3.6/emacs" load-path))
-(setq erlang-root-dir "~/install/otp-2023-12-25")
-(setq exec-path (cons "~/install/otp-2023-12-25/bin" exec-path))
-(require 'erlang-start)
+(if (file-directory-p "~/install/otp-2024-05-26")
+    (progn
+      (setq load-path (cons "~/install/otp-2024-05-26/lib/erlang/lib/tools-4.0/emacs" load-path))
+      (setq erlang-root-dir "~/install/otp-2024-05-26")
+      (setq exec-path (cons "~/install/otp-2024-05-26/bin" exec-path))
+      (require 'erlang-start)))
 
 (require 'prolog)
 (setq prolog-system 'swi
@@ -271,12 +273,10 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 (require 'cmake-mode)
 (require 'bazel)
 
-;; Note: this is better than ripgrep imo. You can look up cross language indices pretty easily.
 (require 'grep)
-(when (executable-find "csearch")
-  (setq grep-use-null-device nil)
-  (setq grep-program "csearch")
-  (setq grep-command "csearch -n -f ^$(git rev-parse --show-toplevel || pwd) "))
+(when (executable-find "rg")
+  (setq grep-command "rg -nS --no-heading "
+        grep-use-null-device nil))
 
 (global-set-key (kbd "C-c s") 'grep)
 (global-set-key (kbd "C-s") 'isearch-forward-regexp)
@@ -302,14 +302,14 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
     (progn
       (cond
        ;; Custom font
-       ((find-font (font-spec :name "Noto Mono"))
-	(setq sk/font "Noto Mono-10"))
+       ((find-font (font-spec :name "Hack"))
+	(setq sk/font "Hack-13"))
        ;; Windows font
        ((find-font (font-spec :name "Consolas"))
-	(setq sk/font "Consolas-10"))
+	(setq sk/font "Consolas-13"))
        ;; Linux font
        ((find-font (font-spec :name "Monospace"))
-	(setq sk/font "Monospace-10"))
+	(setq sk/font "Monospace-13"))
        )
       (add-to-list 'default-frame-alist `(font . ,sk/font))
       (set-face-attribute 'default t :font sk/font)
@@ -364,25 +364,25 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; (set-face-attribute 'hl-line nil :inherit nil :background "gray20")
 
       ;; Theme: solarized
-      ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
-      ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
-      ;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
-      ;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
-      ;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
-      ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
-      ;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
-      ;; (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
-      ;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
-      ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
-      ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
-      ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-      ;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
+      (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
+      (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+      (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+      (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+      (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+      (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+      (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+      (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
+      (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+      (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
+      (add-to-list 'default-frame-alist '(cursor-color . "white"))
+      (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+      (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
 
       ;; Theme: handmade hero
       ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#DAB98F")
@@ -404,9 +404,9 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; Experiment: click to search
       (global-set-key (kbd "<mouse-3>") 'sk/click-to-search)
 
-      (add-to-list 'default-frame-alist '(height . 50))
+      (add-to-list 'default-frame-alist '(height . 60))
       (add-to-list 'default-frame-alist '(width . 100))
-      ;; (toggle-frame-maximized)
+      (toggle-frame-maximized)
 
       (setq initial-frame-alist default-frame-alist)
       (setq special-display-frame-alist default-frame-alist))
