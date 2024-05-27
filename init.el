@@ -259,6 +259,11 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       (setq exec-path (cons "~/install/otp-2024-05-26/bin" exec-path))
       (require 'erlang-start)))
 
+(require 'elixir-mode)
+(add-hook 'elixir-mode-hook
+          (lambda ()
+            (local-set-key (kbd "C-c f") 'elixir-format)))
+
 (require 'prolog)
 (setq prolog-system 'swi
       prolog-program-switches '((swi ("-G128M" "-T128M" "-L128M" "-O"))
