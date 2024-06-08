@@ -1,7 +1,20 @@
 ; Samiurs Emacs Config
 
-(setq debug-on-error t)
+; (setq debug-on-error t)
 (setq warning-minimum-level :emergency)
+
+;; Performance hacks lol
+(setq gc-cons-threshold (* 1024 1024 1024))
+(setq gcmd-high-threshold (* 1024 1024 1024))
+(setq gcmh-idle-delay-factor 20)
+(setq jit-lock-defer-time 0.05)
+(setq read-process-output-max (* 1024 1024))
+(setq process-adaptive-read-buffering nil)
+(setq fast-but-imprecise-scrolling t)
+(setq redisplay-skip-fontification-on-input t)
+(setq inhibit-compacting-font-caches t)
+(setq idle-update-delay 1.0)
+(setq package-native-compile t)
 
 (setq ring-bell-function 'ignore)
 (setq custom-file (concat user-emacs-directory "custom.el"))
@@ -87,7 +100,8 @@
 ;; this script invokes other scripts to configure, compile, debug and format
 ;; emacs searches for these scripts and sets compile to run found script
 
-(require 'project)
+(require 'projectile)
+(projectile-mode +1)
 
 (setq sk/build-script-name "build.sh")
 (if (string-equal system-type "windows-nt")
@@ -116,6 +130,12 @@
       (message "todo file not found, ignoring...")))
 (add-hook 'prog-mode-hook 'sk/set-todo)
 (global-set-key (kbd "C-c t") (lambda() (interactive) (find-file sk/todo)))
+
+(require 'ansi-color)
+(defun sk/ansi-colorize-buffer ()
+  (let ((buffer-read-only nil))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'sk/ansi-colorize-buffer)
 
 (defun sk/compilation-hook ()
   (setq compilation-scroll-output nil)
@@ -309,6 +329,14 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 (setq column-number-mode t)
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
+;; ITERM2 MOUSE SUPPORT
+(unless window-system
+  (require 'mouse)
+  (xterm-mouse-mode t)
+  (defun track-mouse (e))
+  (setq mouse-sel-mode t)
+  )
+
 (if (display-graphic-p)
     (progn
       (cond
@@ -375,25 +403,25 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; (set-face-attribute 'hl-line nil :inherit nil :background "gray20")
 
       ;; Theme: solarized
-      (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
-      (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
-      (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
-      (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
-      (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
-      (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
-      (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
-      (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
-      (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
-      (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
-      (add-to-list 'default-frame-alist '(cursor-color . "white"))
-      (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-      (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
+      ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
+      ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+      ;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+      ;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+      ;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+      ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+      ;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
+      ;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
+      ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
+      ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+      ;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
 
       ;; Theme: handmade hero
       ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#DAB98F")
