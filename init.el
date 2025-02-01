@@ -1,6 +1,6 @@
 ; Samiurs Emacs Config
 
-; (setq debug-on-error t)
+(setq debug-on-error t)
 (setq warning-minimum-level :emergency)
 
 ;; Performance hacks lol
@@ -75,6 +75,8 @@
 (setq create-lockfiles nil)
 (setq make-backup-files nil)
 
+(setq inhibit-startup-screen t)
+
 (setq history-length 25)
 (savehist-mode 1)
 (save-place-mode 1)
@@ -83,6 +85,17 @@
 (delete-selection-mode t)
 (show-paren-mode 1)
 (setq show-paren-style 'parenthesis)
+
+(require 'dumb-jump)
+(add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
+(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
+; eglot performance optimizations
+(fset #'jsonrpc--log-event #'ignore)
+(setq eglot-events-buffer-size 0)
+(setq eglot-sync-connect nil)
+(add-hook 'focus-out-hook 'garbage-collect)
+(setq eglot-connect-timeout nil)
 
 (global-set-key (kbd "RET") 'newline-and-indent)
 
@@ -107,7 +120,7 @@
 (if (string-equal system-type "windows-nt")
     (setq sk/build-script-name "build.bat"))
 
-(setq sk/todo-file "TODO.txt")
+(setq sk/todo-file "TODO.org")
 
 (defun sk/set-build ()
   (interactive)
@@ -149,6 +162,27 @@
 
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (setq show-trailing-whitespace t)
+
+(require 'dired-preview)
+
+;; Default values for demo purposes
+(setq dired-preview-delay 0.7)
+(setq dired-preview-max-size (expt 2 20))
+;; (setq dired-preview-ignored-extensions-regexp
+;;         (concat "\\."
+;;                 "\\(gz\\|"
+;;                 "zst\\|"
+;;                 "tar\\|"
+;;                 "xz\\|"
+;;                 "rar\\|"
+;;                 "zip\\|"
+;;                 "iso\\|"
+;;                 "epub"
+;;                 "\\)"))
+
+;; Enable `dired-preview-mode' in a given Dired buffer or do it
+;; globally:
+(dired-preview-global-mode 1)
 
 (defun sk/format--call (formatter buf)
   "Format buf using formatter."
@@ -235,6 +269,12 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
                 (setq indent-tabs-mode t)
                 (c-set-style "linux-tabs-only")))))
 
+;;(add-hook 'c-mode-hook 'eglot-ensure)
+;;(add-hook 'c++-mode-hook 'eglot-ensure)
+
+(require 'zig-mode)
+;;(add-hook 'zig-mode-hook 'eglot-ensure)
+
 (require 'cuda-mode)
 
 (defun sk/clang-format ()
@@ -254,6 +294,7 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 (defun rust-before-save-method ()
   (sk/rust-format))
 (defun rust-after-save-method ())
+;;(add-hook 'rust-mode-hook 'eglot-ensure)
 
 (require 'go-mode)
 (defun sk/golang-fmt ()
@@ -262,6 +303,7 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 (add-hook 'go-mode-hook
 	  (lambda ()
 	    (local-set-key (kbd "C-c f") 'sk/golang-format)))
+;;(add-hook 'go-mode-hook 'eglot-ensure)
 
 (defun sk/python-fmt ()
   (interactive)
@@ -269,20 +311,32 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 (add-hook 'python-mode-hook
 	  (lambda ()
 	    (local-set-key (kbd "C-c f") 'sk/python-fmt)))
+;;(add-hook 'python-mode-hook 'eglot-ensure)
 
 ;; NOTE: verilog mode has its own set of keybinds.
 
-(if (file-directory-p "~/install/otp-2024-05-26")
-    (progn
-      (setq load-path (cons "~/install/otp-2024-05-26/lib/erlang/lib/tools-4.0/emacs" load-path))
-      (setq erlang-root-dir "~/install/otp-2024-05-26")
-      (setq exec-path (cons "~/install/otp-2024-05-26/bin" exec-path))
-      (require 'erlang-start)))
+;; (if (file-directory-p "~/install/otp-2024-05-26")
+;;     (progn
+;;       (setq load-path (cons "~/install/otp-2024-05-26/lib/erlang/lib/tools-4.0/emacs" load-path))
+;;       (setq erlang-root-dir "~/install/otp-2024-05-26")
+;;       (setq exec-path (cons "~/install/otp-2024-05-26/bin" exec-path))
+;;       (require 'erlang-start)))
 
 (require 'elixir-mode)
 (add-hook 'elixir-mode-hook
           (lambda ()
             (local-set-key (kbd "C-c f") 'elixir-format)))
+
+;; Ocaml
+;; Install opam, then install merlin w/ opam install merlin
+(require 'tuareg)
+(let ((opam-share (ignore-errors (car (process-lines "opam" "var" "share")))))
+ (when (and opam-share (file-directory-p opam-share))
+  (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
+  (autoload 'merlin-mode "merlin" nil t nil)
+  (add-hook 'tuareg-mode-hook 'merlin-mode t)
+  (add-hook 'caml-mode-hook 'merlin-mode t)))
+(add-to-list 'auto-mode-alist '("\\.\\(ml\\)" . tuareg-mode))
 
 (require 'prolog)
 (setq prolog-system 'swi
@@ -303,17 +357,37 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
   "Major mode for editing GitHub Flavored Markdown files" t)
 (add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
 
+;; (require 'tsx-mode)
+;; (add-to-list 'auto-mode-alist '("\\.[jt]s[x]?\\'" . tsx-mode)
+
+(defun sk/js-fmt ()
+  (interactive)
+  (sk/format-buffer "npx prettier . --write"))
+(add-hook 'js-mode-hook
+	  (lambda ()
+	    (local-set-key (kbd "C-c f") 'sk/js-fmt)))
+
+;; (require 'carbon-mode)
+;; (add-to-list 'auto-mode-alist '("\\.carbon\\'" . carbon-mode))
+
 (require 'cmake-mode)
 (require 'bazel)
 
 (require 'grep)
-(when (executable-find "rg")
-  (setq grep-command "rg -nS --no-heading "
-        grep-use-null-device nil))
+;; (when (executable-find "rg")
+;;   (setq grep-command "rg -nS --no-heading "
+;;         grep-use-null-device nil))
 
 (global-set-key (kbd "C-c s") 'counsel-rg)
 
-;; Experiment
+(when (executable-find "csearch")
+  (setq grep-use-null-device nil)
+  (setq grep-program "csearch")
+  (setq grep-command "csearch -n -f ^$(git rev-parse --show-toplevel || pwd) "))
+
+(global-set-key (kbd "C-c s") 'grep)
+
+;; experiment
 (defun sk/click-to-search (*click)
   (interactive "e")
   (let ((p1 (posn-point (event-start *click))))
@@ -342,13 +416,13 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       (cond
        ;; Custom font
        ((find-font (font-spec :name "Hack"))
-	(setq sk/font "Hack-13"))
+	(setq sk/font "Hack-11"))
        ;; Windows font
        ((find-font (font-spec :name "Consolas"))
-	(setq sk/font "Consolas-13"))
+	(setq sk/font "Consolas-11"))
        ;; Linux font
        ((find-font (font-spec :name "Monospace"))
-	(setq sk/font "Monospace-13"))
+	(setq sk/font "Monospace-11"))
        )
       (add-to-list 'default-frame-alist `(font . ,sk/font))
       (set-face-attribute 'default t :font sk/font)
@@ -371,12 +445,6 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; (add-to-list 'default-frame-alist '(background-color . "#FFFFE9"))
       ;; (set-face-attribute 'fringe nil :background "#FFFFE9" :foreground "black")
       ;; (global-font-lock-mode 0)
-
-      ;; Black and white
-      ;; (add-to-list 'default-frame-alist '(cursor-color . "red"))
-      ;; (add-to-list 'default-frame-alist '(foreground-color . "white"))
-      ;; (add-to-list 'default-frame-alist '(background-color . "black"))
-      ;; (set-face-attribute 'fringe nil :background "black" :foreground "white")
 
       ;; Theme: salmon
       ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "white")
@@ -403,25 +471,25 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; (set-face-attribute 'hl-line nil :inherit nil :background "gray20")
 
       ;; Theme: solarized
-      ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
-      ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
-      ;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
-      ;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
-      ;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
-      ;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
-      ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
-      ;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
-      ;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
-      ;; (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
-      ;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
-      ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
-      ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
-      ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-      ;; (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
+      (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
+      (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+      (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+      (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+      (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+      (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+      (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+      (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+      (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+      (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
+      (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+      (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
+      (add-to-list 'default-frame-alist '(cursor-color . "white"))
+      (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+      (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
 
       ;; Theme: handmade hero
       ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#DAB98F")
@@ -451,7 +519,3 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       (setq special-display-frame-alist default-frame-alist))
   ;; Terminal graphical mode settings
   )
-
-
-(when (executable-find "fbclone")
-  (load (expand-file-name (concat user-emacs-directory "lisp/meta.el"))))
