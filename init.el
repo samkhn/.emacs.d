@@ -1,6 +1,6 @@
 ; Samiurs Emacs Config
 
-(setq debug-on-error t)
+; (setq debug-on-error t)
 (setq warning-minimum-level :emergency)
 
 ;; Performance hacks lol
@@ -30,7 +30,7 @@
 (setq ivy-use-virtual-buffers t)
 (setq enable-recursive-minibuffers t)
 ;; enable this if you want `swiper' to use it
-;; (setq search-default-mode #'char-fold-to-regexp)
+(setq search-default-mode #'char-fold-to-regexp)
 (global-set-key (kbd "C-s") 'swiper-isearch)
 (global-set-key (kbd "M-x") 'counsel-M-x)
 (global-set-key (kbd "C-x C-f") 'counsel-find-file)
@@ -89,6 +89,8 @@
 (require 'dumb-jump)
 (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
 (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
+; (iswitchb-mode 1)
 
 ; eglot performance optimizations
 (fset #'jsonrpc--log-event #'ignore)
@@ -208,6 +210,8 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
     (set-window-start (selected-window) cur-win-start))
   (message "Formatted buffer with %s." formatter))
 
+(require 'nasm-mode)
+
 (defun c-lineup-arglist-tabs-only (ignored)
   "Line up argument lists by tabs, not spaces"
   (let* ((anchor (c-langelem-pos c-syntactic-element))
@@ -307,7 +311,7 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 
 (defun sk/python-fmt ()
   (interactive)
-  (sk/format-buffer "yapf"))
+  (sk/format-buffer "yapf3"))
 (add-hook 'python-mode-hook
 	  (lambda ()
 	    (local-set-key (kbd "C-c f") 'sk/python-fmt)))
@@ -367,8 +371,8 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 	  (lambda ()
 	    (local-set-key (kbd "C-c f") 'sk/js-fmt)))
 
-;; (require 'carbon-mode)
-;; (add-to-list 'auto-mode-alist '("\\.carbon\\'" . carbon-mode))
+(require 'carbon-mode)
+(add-to-list 'auto-mode-alist '("\\.carbon\\'" . carbon-mode))
 
 (require 'cmake-mode)
 (require 'bazel)
@@ -378,7 +382,8 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
 ;;   (setq grep-command "rg -nS --no-heading "
 ;;         grep-use-null-device nil))
 
-(global-set-key (kbd "C-c s") 'counsel-rg)
+;; (global-set-key (kbd "C-c s") 'counsel-rg)
+(require 'deadgrep)
 
 (when (executable-find "csearch")
   (setq grep-use-null-device nil)
@@ -411,18 +416,44 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
   (setq mouse-sel-mode t)
   )
 
+(require 'ellama)
+(setopt ellama-language "English")
+  (require 'llm-ollama)
+  (setopt ellama-provider
+	  (make-llm-ollama
+	   :chat-model "deepseek-coder-v2" :embedding-model "deepseek-coder-v2"))
+
+(set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+(set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
+(set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
+(set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+(set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+(set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+(set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+(set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+(set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+(set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+(set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+(set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+(set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+(set-face-attribute 'fringe nil :background "#062329" :foreground "white")
+(set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+(set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
+(add-to-list 'default-frame-alist '(cursor-color . "white"))
+(add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+(add-to-list 'default-frame-alist '(background-color . "#062329"))
+
 (if (display-graphic-p)
     (progn
       (cond
-       ;; Custom font
-       ((find-font (font-spec :name "Hack"))
-	(setq sk/font "Hack-11"))
-       ;; Windows font
+       ((find-font (font-spec :name "Cascadia Mono"))
+	(setq sk/font "Cascadia Mono-13"))
        ((find-font (font-spec :name "Consolas"))
-	(setq sk/font "Consolas-11"))
-       ;; Linux font
+	(setq sk/font "Consolas-13"))
+       ((find-font (font-spec :name "Hack"))
+	(setq sk/font "Hack-13"))
        ((find-font (font-spec :name "Monospace"))
-	(setq sk/font "Monospace-11"))
+	(setq sk/font "Monospace-13"))
        )
       (add-to-list 'default-frame-alist `(font . ,sk/font))
       (set-face-attribute 'default t :font sk/font)
@@ -470,26 +501,47 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; (set-face-attribute 'highlight nil :background "gray20" :foreground "nil")
       ;; (set-face-attribute 'hl-line nil :inherit nil :background "gray20")
 
-      ;; Theme: solarized
-      (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
-      (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
-      (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
-      (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
-      (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
-      (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
-      (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
-      (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
-      (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
-      (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
-      (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
-      (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
-      (add-to-list 'default-frame-alist '(cursor-color . "white"))
-      (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
-      (add-to-list 'default-frame-alist '(background-color . "#062329")) ;; graybg #292929 bluebg #062329
+      ;; Theme: solarized blue
+      ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#44b340")
+      ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+      ;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+      ;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+      ;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+      ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+      ;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'fringe nil :background "#062329" :foreground "white")
+      ;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#062329")
+      ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
+      ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+      ;; (add-to-list 'default-frame-alist '(background-color . "#062329"))
+
+      ;; Theme: solarized gray
+      ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-comment-face nil :foreground "#d0d162")
+      ;; (set-face-attribute 'font-lock-comment-delimiter-face nil :foreground "#d0d162")
+      ;; (set-face-attribute 'font-lock-constant-face nil :foreground "#7ad0c6")
+      ;; (set-face-attribute 'font-lock-doc-face nil :foreground "44b340")
+      ;; (set-face-attribute 'font-lock-function-name-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#ffffff")
+      ;; (set-face-attribute 'font-lock-string-face nil :foreground "#2ec09c")
+      ;; (set-face-attribute 'font-lock-type-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground "#c1d1e3")
+      ;; (set-face-attribute 'font-lock-preprocessor-face nil :foreground "#8cde94")
+      ;; (set-face-attribute 'font-lock-warning-face nil :foreground "#ffaa00")
+      ;; (set-face-attribute 'region nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'fringe nil :background "#292929" :foreground "white")
+      ;; (set-face-attribute 'highlight nil :background "#0000ff" :foreground "nil")
+      ;; (set-face-attribute 'mode-line nil :background "#d1b897" :foreground "#292929")
+      ;; (add-to-list 'default-frame-alist '(cursor-color . "white"))
+      ;; (add-to-list 'default-frame-alist '(foreground-color . "#d1b897"))
+      ;; (add-to-list 'default-frame-alist '(background-color . "#292929"))
 
       ;; Theme: handmade hero
       ;; (set-face-attribute 'font-lock-builtin-face nil :foreground "#DAB98F")
@@ -511,11 +563,12 @@ Expect single program that works with stdin as formatter e.g. rustfmt or clang-f
       ;; Experiment: click to search
       (global-set-key (kbd "<mouse-3>") 'sk/click-to-search)
 
-      (add-to-list 'default-frame-alist '(height . 60))
+      (add-to-list 'default-frame-alist '(height . 50))
       (add-to-list 'default-frame-alist '(width . 100))
       (toggle-frame-maximized)
 
       (setq initial-frame-alist default-frame-alist)
       (setq special-display-frame-alist default-frame-alist))
   ;; Terminal graphical mode settings
+  ;; (set-variable 'frame-background-mode 'light)
   )
